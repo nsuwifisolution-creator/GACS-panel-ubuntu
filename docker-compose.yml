@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:8.0
+    container_name: genieacs-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  genieacs-cwmp:
+    image: genieacs/genieacs:latest
+    container_name: genieacs-cwmp
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '7547:7547'
+    environment:
+      - DB_URI=mongodb://mongo:27017/genieacs
+      - CWMP_PORT=7547
+      - NBI_PORT=7557
+      - FS_PORT=7567
+      - UI_PORT=3000
+
+  genieacs-nbi:
+    image: genieacs/genieacs:latest
+    container_name: genieacs-nbi
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '7557:7557'
+    environment:
+      - DB_URI=mongodb://mongo:27017/genieacs
+
+  genieacs-fs:
+    image: genieacs/genieacs:latest
+    container_name: genieacs-fs
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '7567:7567'
+    environment:
+      - DB_URI=mongodb://mongo:27017/genieacs
+
+  genieacs-ui:
+    image: genieacs/genieacs:latest
+    container_name: genieacs-ui
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '3000:3000'
+    environment:
+      - DB_URI=mongodb://mongo:27017/genieacs
+
+  panel:
+    build: .
+    container_name: genieacs-panel
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+      - GENIEACS_NBI_URL=http://genieacs-nbi:7557
+
+volumes:
+  mongo_data:

@@ -1,0 +1,16 @@
+[Unit]
+Description=GenieACS UI Service
+After=network.target
+
+[Service]
+Type=simple
+User=genieacs
+Group=genieacs
+EnvironmentFile=/opt/genieacs/genieacs.env
+WorkingDirectory=/opt/genieacs
+ExecStart=/usr/bin/genieacs-ui
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
