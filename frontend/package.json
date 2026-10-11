@@ -1,7 +1,48 @@
-import { Router } from 'express';
-import { getLogs } from '../controllers/logController.js';
-
-const router = Router();
-router.get('/logs', getLogs);
-
-export default router;
+{
+  "name": "genieacs-panel-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.22.3",
+    "@tanstack/react-query": "^5.28.0",
+    "@tanstack/react-table": "^8.17.3",
+    "axios": "^1.6.5",
+    "clsx": "^2.1.0",
+    "framer-motion": "^10.16.16",
+    "recharts": "^2.10.3",
+    "tailwind-merge": "^2.2.2",
+    "zustand": "^4.4.1",
+    "lucide-react": "^0.292.0",
+    "cmdk": "^0.2.0",
+    "date-fns": "^2.30.0",
+    "next-themes": "^0.2.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11"
+  }
+}
