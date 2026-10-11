@@ -1,17 +1,16 @@
 [Unit]
-Description=GenieACS File Server
+Description=GenieACS FS service
 After=network.target mongod.service
-Wants=mongod.service
 
 [Service]
 Type=simple
-User=genieacs
-Group=genieacs
 EnvironmentFile=/opt/genieacs/genieacs.env
-WorkingDirectory=/opt/genieacs
-ExecStart=/usr/bin/genieacs-fs --db mongodb://127.0.0.1:27017/genieacs
+ExecStart=/usr/bin/genieacs-fs
 Restart=always
 RestartSec=5
+User=genieacs
+Group=genieacs
+WorkingDirectory=/opt/genieacs
 
 [Install]
 WantedBy=multi-user.target

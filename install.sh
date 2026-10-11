@@ -10,18 +10,9 @@ NODE_MAJOR="20"
 
 export DEBIAN_FRONTEND=noninteractive
 
-info() {
-  echo "[INFO] $*"
-}
-
-warn() {
-  echo "[WARN] $*"
-}
-
-fail() {
-  echo "[ERROR] $*" >&2
-  exit 1
-}
+info() { echo "[INFO] $*"; }
+warn() { echo "[WARN] $*"; }
+fail() { echo "[ERROR] $*" >&2; exit 1; }
 
 if [ "$(id -u)" -ne 0 ]; then
   fail "Run this script with sudo: sudo bash install.sh"
@@ -31,9 +22,9 @@ if [ ! -d "$SCRIPT_DIR/backend" ] || [ ! -d "$SCRIPT_DIR/frontend" ]; then
   fail "This installer expects backend/ and frontend/ directories in the project root."
 fi
 
-info "Updating system packages"
+info "Updating package lists"
 apt-get update
-apt-get install -y ca-certificates curl wget gnupg git ufw software-properties-common
+apt-get install -y ca-certificates curl wget gnupg git ufw software-properties-common lsb-release
 
 info "Installing Node.js ${NODE_MAJOR} from NodeSource"
 if ! command -v node >/dev/null 2>&1; then
@@ -43,25 +34,25 @@ else
   info "Node.js already installed: $(node -v)"
 fi
 
-info "Installing MongoDB 8.0 repository"
+info "Adding MongoDB 8.0 repository"
 if ! grep -q "mongodb-org-8.0" /etc/apt/sources.list.d/mongodb-org-8.0.list 2>/dev/null; then
   curl -fsSL https://pgp.mongodb.com/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
-  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
+  echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list
 fi
 apt-get update
 apt-get install -y mongodb-org
 
-info "Creating GenieACS system user and directories"
+info "Creating GenieACS user and directories"
 if ! id "$GENIEACS_USER" >/dev/null 2>&1; then
   useradd --system --home-dir "$GENIEACS_DIR" --create-home --shell /usr/sbin/nologin "$GENIEACS_USER" || true
 fi
 mkdir -p "$GENIEACS_DIR" "$LOG_DIR" /etc/genieacs
 chown -R "$GENIEACS_USER:$GENIEACS_USER" "$GENIEACS_DIR" "$LOG_DIR" /etc/genieacs
 
-info "Installing GenieACS npm package"
+info "Installing GenieACS"
 npm install -g genieacs@1.2.13
 
-info "Generating JWT secret and environment file"
+info "Generating environment and secrets"
 JWT_SECRET="$(openssl rand -base64 128 | tr -d '\n')"
 SESSION_SECRET="$(openssl rand -base64 128 | tr -d '\n')"
 cat > "$GENIEACS_DIR/genieacs.env" <<EOF
@@ -77,20 +68,20 @@ EOF
 chmod 600 "$GENIEACS_DIR/genieacs.env"
 chown "$GENIEACS_USER:$GENIEACS_USER" "$GENIEACS_DIR/genieacs.env"
 
-info "Installing panel app into ${APP_DIR}"
+info "Installing panel application into ${APP_DIR}"
 rm -rf "$APP_DIR"
 cp -a "$SCRIPT_DIR" "$APP_DIR"
 
-info "Installing backend dependencies"
+info "Install backend dependencies"
 cd "$APP_DIR/backend"
-cp -f .env.example .env
-sed -i "s#JWT_SECRET=.*#JWT_SECRET=${JWT_SECRET}#" .env
-sed -i "s#SESSION_SECRET=.*#SESSION_SECRET=${SESSION_SECRET}#" .env
+cp -f .env.example .env || true
+sed -i "s#JWT_SECRET=.*#JWT_SECRET=${JWT_SECRET}#" .env || true
+sed -i "s#SESSION_SECRET=.*#SESSION_SECRET=${SESSION_SECRET}#" .env || true
 npm install --production=false
 
-info "Building frontend"
+info "Build frontend"
 cd "$APP_DIR/frontend"
-cp -f .env.example .env 2>/dev/null || true
+cp -f .env.example .env || true
 npm install
 npm run build
 
@@ -103,7 +94,7 @@ install -m 0644 "$APP_DIR/systemd/genieacs-ui.service" /etc/systemd/system/genie
 install -m 0644 "$APP_DIR/systemd/genieacs-panel.service" /etc/systemd/system/genieacs-panel.service
 systemctl daemon-reload
 
-info "Configuring Nginx reverse proxy"
+info "Configuring Nginx"
 if ! command -v nginx >/dev/null 2>&1; then
   apt-get install -y nginx
 fi
@@ -114,18 +105,18 @@ fi
 nginx -t
 systemctl enable --now nginx
 
-info "Enabling and starting services"
+info "Enable services"
 systemctl enable --now mongod
-systemctl enable --now genieacs-cwmp genieacs-nbi genieacs-fs genieacs-ui genieacs-panel
+systemctl enable --now genieacs-cwmp genieacs-nbi genieacs-fs genieacs-ui genieacs-panel || true
 
-info "Applying basic firewall rule"
+info "Apply firewall rules"
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 7547/tcp
-ufw --force enable
+ufw --force enable || true
 
 info "Installation complete"
 info "Panel backend: http://127.0.0.1:5000"
 info "GenieACS UI: http://127.0.0.1:3000"
 info "Nginx HTTPS endpoint: https://your-domain"
-info "Default panel admin: admin / GenieACS@2025!"
+info "Default admin credentials: admin / GenieACS@2025!"

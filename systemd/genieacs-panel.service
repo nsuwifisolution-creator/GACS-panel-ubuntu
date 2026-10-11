@@ -1,5 +1,5 @@
 [Unit]
-Description=GenieACS Panel web application
+Description=GenieACS Panel Backend
 After=network.target
 
 [Service]
